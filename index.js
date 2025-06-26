@@ -25,19 +25,35 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const userCollection = client.db("online-shopping").collection("users");
+    const productCollection=client.db("online-shopping").collection("products");
 
-  
-     //post sinUp users all info
-      app.post('/users', async (req, res) => {
-   const newuser=req.body;
-    const existingUser = await userCollection.findOne({ email :newuser.email});
-    if (existingUser) {
-        return res.status(400).json({ message: "User already exist" });
-    }
-    const result = await userCollection.insertOne(newuser);
-    res.json(result);
+  //post sinUp users all info
+  app.post('/users', async (req, res) => {
+  const newUser = req.body;
+  // Basic validation
+  if (!newUser.email || !newUser.name || !newUser.role) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+  const existingUser = await userCollection.findOne({ email: newUser.email });
+  if (existingUser) {
+    return res.status(200).json({ message: "User already exists", alreadyExists: true });
+  }
+  const result = await userCollection.insertOne(newUser);
+  res.status(201).json({ message: "User created", insertedId: result.insertedId });
 });
 
+//roll base user get
+ app.get("/users/role", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query); 
+      if (user) {
+          res.send({ role: user.role });
+          console.log(user.role)
+      } else {
+          res.status(404).send({ message: "User not found" });
+      }
+  });
 
     //get users registered data
      app.get('/users', async (req, res) => {
@@ -52,6 +68,17 @@ async function run() {
       }
        res.send(result);
     });
+
+    //added product by seller
+    app.post('/products', async (req, res) => {
+  const product = req.body;
+  const result = await productCollection.insertOne(product);
+  res.send({
+    success: true,
+    insertedId: result.insertedId,
+    message: "Product added successfully"
+  });
+});
 
 
 
