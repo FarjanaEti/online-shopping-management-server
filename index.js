@@ -50,7 +50,7 @@ async function run() {
       const user = await userCollection.findOne(query); 
       if (user) {
           res.send({ role: user.role });
-          console.log(user.role)
+         
       } else {
           res.status(404).send({ message: "User not found" });
       }
@@ -115,6 +115,31 @@ app.get('/products/:id', async (req, res) => {
     res.status(500).send({ message: 'Failed to add to cart' });
   }
 });
+
+//get add to cart data
+app.get("/cart", async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).send({ error: "Email is required" });
+
+  const query = { email: email };
+  const result = await cartProductCollection.find(query).toArray();
+  res.send(result);
+});
+
+app.get('/cart/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await cartProductCollection.findOne(query);
+    res.send(result);
+  })
+
+//delete add cart data
+ app.delete('/cart/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await cartProductCollection.deleteOne(query);
+    res.send(result);
+  })
 
 
     // Send a ping to confirm a successful connection
