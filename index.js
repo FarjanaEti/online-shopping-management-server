@@ -26,6 +26,7 @@ async function run() {
     await client.connect();
     const userCollection = client.db("online-shopping").collection("users");
     const productCollection=client.db("online-shopping").collection("products");
+    const cartProductCollection=client.db("online-shopping").collection("cartItem");
 
   //post sinUp users all info
   app.post('/users', async (req, res) => {
@@ -102,6 +103,18 @@ app.get('/products/:id', async (req, res) => {
     const result = await productCollection.findOne(query);
     res.send(result);
   })
+
+  //add to cart post
+  app.post('/cart', async (req, res) => {
+  try {
+    const cartItem = req.body;
+    const result = await cartProductCollection.insertOne(cartItem);
+    res.send(result); 
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    res.status(500).send({ message: 'Failed to add to cart' });
+  }
+});
 
 
     // Send a ping to confirm a successful connection
