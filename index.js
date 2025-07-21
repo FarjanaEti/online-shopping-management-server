@@ -27,6 +27,7 @@ async function run() {
     const userCollection = client.db("online-shopping").collection("users");
     const productCollection=client.db("online-shopping").collection("products");
     const cartProductCollection=client.db("online-shopping").collection("cartItem");
+    const wishProductCollection=client.db("online-shopping").collection("wishlist");
 
   //post sinUp users all info
   app.post('/users', async (req, res) => {
@@ -141,6 +142,26 @@ app.get('/cart/:id', async (req, res) => {
     res.send(result);
   })
 
+  //**************wishlist******* */
+  app.post('/wish', async (req, res) => {
+  try {
+    const cartItem = req.body;
+    const result = await wishProductCollection.insertOne(cartItem);
+    res.send(result); 
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    res.status(500).send({ message: 'Failed to add to cart' });
+  }
+});
+
+app.get("/wishlist", async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).send({ error: "Email is required" });
+
+  const query = { email: email };
+  const result = await wishProductCollection.find(query).toArray();
+  res.send(result);
+});
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
