@@ -28,6 +28,7 @@ async function run() {
     const productCollection=client.db("online-shopping").collection("products");
     const cartProductCollection=client.db("online-shopping").collection("cartItem");
     const wishProductCollection=client.db("online-shopping").collection("wishlist");
+    const orderProductCollection=client.db("online-shopping").collection("user_order");
 
   //post sinUp users all info
   app.post('/users', async (req, res) => {
@@ -105,6 +106,23 @@ app.get('/products/:id', async (req, res) => {
     res.send(result);
   })
 
+  //seller delete his product
+  // delete a single product by id
+app.delete('/products/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+
+  const result = await productCollection.deleteOne(query);
+
+  if (result.deletedCount === 1) {
+    res.send({ success: true, message: 'Product deleted successfully', id });
+  } else {
+    res.status(404).send({ success: false, message: 'Product not found' });
+  }
+});
+
+
+
   //add to cart post
   app.post('/cart', async (req, res) => {
   try {
@@ -162,6 +180,25 @@ app.get("/wishlist", async (req, res) => {
   const result = await wishProductCollection.find(query).toArray();
   res.send(result);
 });
+
+// *************User order************
+// Correct backend route
+app.post("/orders", async (req, res) => {
+  const orderItem = req.body;
+  const result = await orderProductCollection.insertOne(orderItem);
+  res.send(result);
+});
+
+//get order
+app.get("/orders", async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).send({ error: "Email is required" });
+
+  const query = { email: email };
+  const result = await orderProductCollection.find(query).toArray();
+  res.send(result);
+});
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
